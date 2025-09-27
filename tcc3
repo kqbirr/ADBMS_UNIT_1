@@ -1,0 +1,83 @@
+DROP TABLE IF EXISTS StudentEnrollments;
+CREATE TABLE StudentEnrollments (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    student_name VARCHAR(100) NOT NULL,
+    course_id VARCHAR(10) NOT NULL,
+    enrollment_date DATE NOT NULL
+);
+
+INSERT INTO StudentEnrollments (student_name, course_id, enrollment_date) VALUES
+('Ashish', 'CSE101', '2024-06-01'),
+('Smaran', 'CSE102', '2024-06-01'),
+('Vaibhav', 'CSE103', '2024-06-01');
+
+-- Part A: Simulating Deadlock
+
+-- Session A
+START TRANSACTION;
+UPDATE StudentEnrollments 
+SET enrollment_date='2024-06-05'
+WHERE student_id=1;
+
+-- Session B
+START TRANSACTION;
+UPDATE StudentEnrollments 
+SET enrollment_date='2024-06-07'
+WHERE student_id=2;
+
+-- Session A
+UPDATE StudentEnrollments 
+SET enrollment_date='2024-06-06'
+WHERE student_id=2;
+
+-- Session B
+UPDATE StudentEnrollments 
+SET enrollment_date='2024-06-08'
+WHERE student_id=1;
+
+
+-- Part B: MVCC Simulation
+
+-- Session A
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+START TRANSACTION;
+SELECT enrollment_date FROM StudentEnrollments WHERE student_id=1;
+
+-- Session B 
+START TRANSACTION;
+UPDATE StudentEnrollments
+SET enrollment_date='2024-07-10'
+WHERE student_id=1;
+COMMIT;
+
+-- Session A
+SELECT enrollment_date FROM StudentEnrollments WHERE student_id=1;
+
+
+-- Part C: Compare Locking vs MVCC
+-- With Traditional Locking
+
+-- Session A
+START TRANSACTION;
+SELECT * FROM StudentEnrollments WHERE student_id=1 FOR UPDATE;
+
+-- Session B
+SELECT * FROM StudentEnrollments WHERE student_id=1;
+
+
+-- With MVCC
+
+-- Session A
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+START TRANSACTION;
+SELECT * FROM StudentEnrollments WHERE student_id=1;
+
+-- Session B
+START TRANSACTION;
+UPDATE StudentEnrollments
+SET enrollment_date='2024-07-15'
+WHERE student_id=1;
+COMMIT;
+
+-- Session A 
+SELECT * FROM StudentEnrollments WHERE student_id=1;
