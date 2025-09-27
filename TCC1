@@ -1,0 +1,60 @@
+DROP TABLE IF EXISTS FeePayments;
+
+CREATE TABLE FeePayments (
+    payment_id INT PRIMARY KEY,
+    student_name VARCHAR(100) NOT NULL,
+    amount DECIMAL(10,2) CHECK (amount > 0),
+    payment_date DATE NOT NULL
+) ENGINE=InnoDB;
+
+
+-- PART A: Insert Multiple Payments (Atomicity + Commit)
+
+START TRANSACTION;
+INSERT INTO FeePayments VALUES (1, 'Ashish', 5000.00, '2024-06-01');
+INSERT INTO FeePayments VALUES (2, 'Smaran', 4500.00, '2024-06-02');
+INSERT INTO FeePayments VALUES (3, 'Vaibhav', 5500.00, '2024-06-03');
+COMMIT;
+
+SELECT * FROM FeePayments;
+
+
+-- PART B: Demonstrate Rollback on Failure
+
+START TRANSACTION;
+INSERT INTO FeePayments VALUES (4, 'Kiran', 6000.00, '2024-06-04');
+
+INSERT INTO FeePayments VALUES (1, 'Ashish', -3000.00, '2024-06-05');
+ROLLBACK;
+
+SELECT * FROM FeePayments; 
+
+
+-- PART C: Partial Failure Example
+
+START TRANSACTION;
+INSERT INTO FeePayments VALUES (5, 'Rohit', 7000.00, '2024-06-06'); 
+
+INSERT INTO FeePayments VALUES (6, NULL, 4000.00, '2024-06-07');
+ROLLBACK;
+
+SELECT * FROM FeePayments; 
+
+
+-- PART D: Verify ACID Properties
+
+-- Atomicity + Durability: valid inserts committed
+START TRANSACTION;
+INSERT INTO FeePayments VALUES (7, 'Meera', 9000.00, '2024-06-08');
+INSERT INTO FeePayments VALUES (8, 'Arjun', 9500.00, '2024-06-09');
+COMMIT;
+
+-- Consistency + Rollback: failed transaction undone
+START TRANSACTION;
+INSERT INTO FeePayments VALUES (9, 'Sneha', 8500.00, '2024-06-10');
+
+INSERT INTO FeePayments VALUES (1, 'Duplicate', 10000.00, '2024-06-11');
+ROLLBACK;
+
+-- Final output
+SELECT * FROM FeePayments ORDER BY payment_id;
